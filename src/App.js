@@ -1,16 +1,63 @@
-import react, { useState } from "react";
 import "./App.css";
-import data from "./data";
-import List from "./List";
+import { useGlobalContext } from "./context";
+
+import SetupForm from "./SetupForm";
+import Loading from "./Loading";
+import Modal from "./Modal";
 
 function App() {
-  const [people, setPeople] = useState(data);
+  const {
+    waiting,
+    loading,
+    questions,
+    index,
+    correct,
+    nextQuestion,
+    checkAnswer,
+  } = useGlobalContext();
+
+  if (waiting) {
+    return <SetupForm />;
+  }
+  if (loading) {
+    return <Loading />;
+  }
+
+  const { question, incorrect_answers, correct_answer } = questions[index];
+  let answers = [...incorrect_answers];
+  const tempIndex = Math.floor(Math.random() * 4);
+  if (tempIndex === 3) {
+    answers.push(correct_answer);
+  } else {
+    answers.push(answers[tempIndex]);
+    answers[tempIndex] = correct_answer;
+  }
+
   return (
     <main>
-      <section className="container">
-        <h3> {people.length} birthdays today </h3>
-        <List people={people} />
-        <button onClick={() => setPeople([])}>clear all</button>
+      <Modal />
+      <section className="quiz">
+        <p className="correct-answers">
+          correct answers :{correct}/{index}
+        </p>
+        <article className="container">
+          <h2 dangerouslySetInnerHTML={{ __html: question }}></h2>
+          <div className="btn-container">
+            {answers.map((answer, index) => {
+              return (
+                <button
+                  key={index}
+                  className="answer-btn"
+                  onClick={() => checkAnswer(correct_answer === answer, answer)}
+                  dangerouslySetInnerHTML={{ __html: answer }}
+                />
+              );
+            })}
+          </div>
+        </article>
+        <button className="next-question" onClick={nextQuestion}>
+          next question
+        </button>
       </section>
     </main>
   );
